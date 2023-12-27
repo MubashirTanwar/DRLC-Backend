@@ -25,6 +25,10 @@ const studentSchema  = new mongoose.Schema({
         trim: true,
         index: true
     },
+    idCard: {
+        type: String,
+        required: true,
+    },
     history: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -57,7 +61,24 @@ studentSchema.methods.accessToken = function(){
             domain_id: this.domain_id,
             prn: this.prn,
             fullname: this.fullname
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
+    )
+}
+
+studentSchema.methods.refreshToken = function(){
+    jwt.sign(
+        {
+            domain_id: this.domain_id
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: REFRESH_TOKEN_EXPIRY
+        }
+
     )
 }
 
