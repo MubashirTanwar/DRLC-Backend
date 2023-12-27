@@ -50,4 +50,15 @@ studentSchema.methods.passwordCheck = async function(password){
     return await bcrypt.compare(password, this.password)
 }
 
+studentSchema.methods.accessToken = function(){
+    return jwt.sign(
+        {
+            _id: this._id,
+            domain_id: this.domain_id,
+            prn: this.prn,
+            fullname: this.fullname
+        }
+    )
+}
+
 export const Student = mongoose.model("Student", studentSchema)
