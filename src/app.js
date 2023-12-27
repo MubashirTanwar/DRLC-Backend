@@ -13,4 +13,13 @@ app.use(express.urlencoded({extended: true}))
 app.use(express.static("public"))
 app.use(cookieParser())
  
-export {app} 
+// R O U T E S 
+import {router} from "./routes/student.routes.js"
+
+app.use("/api/v1/student", router)
+
+
+
+
+
+export default app
