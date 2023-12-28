@@ -35,7 +35,7 @@ const studentSchema  = new mongoose.Schema({
             ref: "Request"
         }
     ],
-    refreshtoken: {
+    refreshToken: {
         type: String
     }
 }, 
@@ -54,7 +54,7 @@ studentSchema.methods.passwordCheck = async function(password){
     return await bcrypt.compare(password, this.password)
 }
 
-studentSchema.methods.accessToken = function(){
+studentSchema.methods.createAccessToken = function(){
     return jwt.sign(
         {
             _id: this._id,
@@ -69,7 +69,7 @@ studentSchema.methods.accessToken = function(){
     )
 }
 
-studentSchema.methods.refreshToken = function(){
+studentSchema.methods.createRefreshToken = function(){
     jwt.sign(
         {
             domain_id: this.domain_id
