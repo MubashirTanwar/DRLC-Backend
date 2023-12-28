@@ -14,14 +14,15 @@ const registerUser = asyncHandler( async (req, res)=>{
         throw new ApiError(400, "All fields are required") 
     } 
 
-    const existingStudent = Student.findOne({
+    const existingStudent = await Student.findOne({
         $or: [{ domain_id }, { prn }]
     })
     if (existingStudent) {
         throw new ApiError(409, "User with PRN and Domain-ID already exists")
     }
-    console.log(req.file);
-    const idLocalPath = req.file[0].path;
+    // console.log(req.file);
+    const idLocalPath = req.file?.path;
+    //
 
     if(!idLocalPath){
         throw new ApiError(400, "ID card is required")
@@ -32,10 +33,10 @@ const registerUser = asyncHandler( async (req, res)=>{
         domain_id,
         prn, 
         password,
-        id_card: idLocalPath
+        idCard: idLocalPath
     })
 
-    const createdStudent = Student.findById(student._id).select(
+    const createdStudent = await Student.findById(student._id).select(
         "-password -refreshtoken"
     )
 
