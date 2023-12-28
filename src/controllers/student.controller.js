@@ -4,6 +4,22 @@ import { Student } from "../models/students.models.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
+const generateTokens = async(userID) => {
+    try {
+        const student = await Student.findById(userID)
+        const accessToken = student.createAccessToken()
+        const refreshToken = student.createRefreshToken()
+
+        userID.refreshToken = refreshToken
+        await userID.save({validateBeforeSave: false})
+
+        return { accessToken, refreshToken }
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating tokens")
+    }
+}
+
 const registerUser = asyncHandler( async (req, res)=>{
     const {fullname, domain_id, prn, password} = req.body
     
@@ -49,4 +65,72 @@ const registerUser = asyncHandler( async (req, res)=>{
     )
 })
 
-export{ registerUser }
+const loginUser = asyncHandler( async (req, res) => {
+    const  {domain_id, prn, password} = req.body
+
+    if (
+        [domain_id, prn, password].some((field) => 
+        field?.trim() === "")
+    ) {
+        throw new ApiError(400, "All fields are required") 
+    }
+    
+    const existingStudent = await Student.findOne({
+        $or: [{ domain_id }, { prn }]
+    })
+    if(!existingStudent){
+        throw new ApiError(404, "Unregistered DomainID or PRN")
+    }
+
+    const isPasswordValid = await existingStudent.passwordCheck(password)
+    if(!isPasswordValid) {
+        throw new ApiError(401, "Invalid Login Credentials")
+    }
+
+    const { accessToken, refreshToken } = await generateTokens(existingStudent._id)
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: accessToken, accessToken
+            },
+            "Student logged in successfully"
+        )
+    )
+})
+
+const logoutUser = asyncHandler( async (req, res) => {
+    await Student.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "Student logged Out"))
+})
+
+export{ 
+    registerUser,
+    loginUser,
+    logoutUser 
+}
