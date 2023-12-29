@@ -11,7 +11,6 @@ const generateTokens = async(userID) => {
         const accessToken = logStudent.createAccessToken()
 
         const refreshToken = logStudent.createRefreshToken();
-        console.log(refreshToken);
 
         logStudent.refreshToken = refreshToken
         await logStudent.save({validateBeforeSave: false})
@@ -39,10 +38,8 @@ const registerUser = asyncHandler( async (req, res)=>{
     if (existingStudent) {
         throw new ApiError(409, "User with PRN and Domain-ID already exists")
     }
-    // console.log(req.file);
-    const idLocalPath = req.file?.path;
-    //
 
+    const idLocalPath = req.file?.path;
     if(!idLocalPath){
         throw new ApiError(400, "ID card is required")
     }
@@ -70,8 +67,6 @@ const registerUser = asyncHandler( async (req, res)=>{
 
 const loginUser = asyncHandler( async (req, res) => {
     const  {domain_id, prn, password} = req.body;
-    console.log(req.body);
-
     if ([domain_id, prn, password].some((field) => 
         field?.trim() === "")) {
         throw new ApiError(400, "All fields are required") 
@@ -88,7 +83,7 @@ const loginUser = asyncHandler( async (req, res) => {
     if(!isPasswordValid) {
         throw new ApiError(401, "Invalid Login Credentials")
     }
-    console.log(existingStudent._id);
+    
     const { accessToken, refreshToken } = await generateTokens(existingStudent._id)
 
     const options = {
@@ -113,7 +108,7 @@ const loginUser = asyncHandler( async (req, res) => {
 
 const logoutUser = asyncHandler( async (req, res) => {
     await Student.findByIdAndUpdate(
-        req.user._id,
+        req.student._id,
         {
             $set: {
                 refreshToken: undefined
@@ -123,6 +118,11 @@ const logoutUser = asyncHandler( async (req, res) => {
             new: true
         }
     )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
 
     return res
     .status(200)
