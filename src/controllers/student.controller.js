@@ -1,7 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js"
 import { Student } from "../models/students.models.js"; 
-import { upload } from "../middlewares/multer.middleware.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
 const generateTokens = async(userID) => {
@@ -51,6 +50,8 @@ const registerUser = asyncHandler( async (req, res)=>{
         password,
         idCard: idLocalPath
     })
+
+    const newID = "ID" + '-' + prn
 
     const createdStudent = await Student.findById(student._id).select(
         "-password -refreshtoken"
