@@ -6,12 +6,15 @@ import { ApiResponse } from "../utils/apiResponse.js";
 
 const generateTokens = async(userID) => {
     try {
-        const student = await Student.findById(userID)
-        const accessToken = student.createAccessToken()
-        const refreshToken = student.createRefreshToken()
+        const logStudent = await Student.findById(userID)
 
-        userID.refreshToken = refreshToken
-        await userID.save({validateBeforeSave: false})
+        const accessToken = logStudent.createAccessToken()
+
+        const refreshToken = logStudent.createRefreshToken();
+        console.log(refreshToken);
+
+        logStudent.refreshToken = refreshToken
+        await logStudent.save({validateBeforeSave: false})
 
         return { accessToken, refreshToken }
 
@@ -66,12 +69,11 @@ const registerUser = asyncHandler( async (req, res)=>{
 })
 
 const loginUser = asyncHandler( async (req, res) => {
-    const  {domain_id, prn, password} = req.body
+    const  {domain_id, prn, password} = req.body;
+    console.log(req.body);
 
-    if (
-        [domain_id, prn, password].some((field) => 
-        field?.trim() === "")
-    ) {
+    if ([domain_id, prn, password].some((field) => 
+        field?.trim() === "")) {
         throw new ApiError(400, "All fields are required") 
     }
     
@@ -86,7 +88,7 @@ const loginUser = asyncHandler( async (req, res) => {
     if(!isPasswordValid) {
         throw new ApiError(401, "Invalid Login Credentials")
     }
-
+    console.log(existingStudent._id);
     const { accessToken, refreshToken } = await generateTokens(existingStudent._id)
 
     const options = {
@@ -102,7 +104,7 @@ const loginUser = asyncHandler( async (req, res) => {
         new ApiResponse(
             200,
             {
-                user: accessToken, accessToken
+                accessToken, refreshToken
             },
             "Student logged in successfully"
         )

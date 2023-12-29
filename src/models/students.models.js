@@ -68,15 +68,15 @@ studentSchema.methods.createAccessToken = function(){
         }
     )
 }
-
+//createRefreshToken
 studentSchema.methods.createRefreshToken = function(){
-    jwt.sign(
+    return jwt.sign(
         {
             domain_id: this.domain_id
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
 
     )
