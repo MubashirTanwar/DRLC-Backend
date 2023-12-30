@@ -9,8 +9,7 @@ const registerUser = asyncHandler( async (req, res)=>{
     const {fullname, domain_id, prn, password} = req.body
     
     if (
-        [fullname, domain_id, prn, password].some((field) => 
-        field?.trim() === "")
+        [fullname, domain_id, prn, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required") 
     } 
@@ -137,7 +136,7 @@ const newRefreshToken = asyncHandler( async (req, res) => {
     
         console.log(token);
     
-        const student = await Student.findOne(token.domain_id)
+        const student = await Student.findById(token.domain_id)
         console.log(student);
     
         if(!student){

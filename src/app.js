@@ -19,7 +19,7 @@ app.use("/api/v1/student", router)
 
 // A D M I N    R O U T E S 
 import { adminRouter } from "./routes/admin.routes.js";
-app.use("api/v1/admin", adminRouter)
+app.use("/api/v1/admin", adminRouter)
 
 
 

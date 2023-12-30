@@ -4,18 +4,18 @@ import { Admin } from "../models/admin.models.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { generateTokens } from "../utils/generateToken.js";
 
-const registerAdmin = asyncHandler( async(res, req) => {
+const registerAdmin = asyncHandler( async(req, res) => {
     const { email, password, fullname, key } = req.body
 
     if(
-        [ email, password, fullname ]
-        .some((field) => { field?.trim === ""})
+        [ email, password, fullname ].some((field) =>  field?.trim() === "")
+        //[fullname, domain_id, prn, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(401, "All Fields are mandatory")
     }
 
-    const exisitngAdmin = await Admin.findOne(email)
-    if (!exisitngAdmin){
+    const exisitngAdmin = await Admin.findOne({email})
+    if (exisitngAdmin){
         throw new ApiError(404, "Admin already exists")
     }
 
@@ -29,7 +29,7 @@ const registerAdmin = asyncHandler( async(res, req) => {
         fullname: fullname,
         key: key
     })    
-    const createdAdmin = await Admin.findOne(admin._id).select("-password")
+    const createdAdmin = await Admin.findById(admin._id).select("-password")
     if(!createdAdmin){
         throw new ApiError(500, "Error while creating admin")
     }
@@ -39,14 +39,14 @@ const registerAdmin = asyncHandler( async(res, req) => {
     
 })
 
-const loginAdmin = asyncHandler( async(res, req) => {
+const loginAdmin = asyncHandler( async(req, res) => {
     const  {email, password} = req.body;
 
     if ([email, password].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required") 
     }
     
-    const existingAdmin = await Admin.findOne(email)
+    const existingAdmin = await Admin.findOne({email})
     if(!existingAdmin){
         throw new ApiError(404, "Unregistered Admin email")
     }
@@ -57,6 +57,7 @@ const loginAdmin = asyncHandler( async(res, req) => {
     }
     
     const { accessToken, refreshToken } = await generateTokens(Admin, existingAdmin._id)
+
 
     const options = {
         httpOnly: true,
@@ -71,14 +72,15 @@ const loginAdmin = asyncHandler( async(res, req) => {
         new ApiResponse(
             200,
             {
-                accessToken, refreshToken
+                accessToken: accessToken, 
+                refreshToken: refreshToken
             },
             "Admin logged in successfully"
         )
     )
 })
 
-const logoutAdmin = asyncHandler( async(res, req) => {
+const logoutAdmin = asyncHandler( async(req, res) => {
     await Admin.findByIdAndUpdate(
         req.admin._id,
         {
