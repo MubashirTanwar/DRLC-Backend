@@ -13,10 +13,13 @@ app.use(express.urlencoded({extended: true}))
 app.use(express.static("public"))
 app.use(cookieParser())
  
-// R O U T E S 
-import {router} from "./routes/student.routes.js"
-
+// U S E R    R O U T E S 
+import { router } from "./routes/student.routes.js"
 app.use("/api/v1/student", router)
+
+// A D M I N    R O U T E S 
+import { adminRouter } from "./routes/admin.routes.js";
+app.use("api/v1/admin", adminRouter)
 
 
 
