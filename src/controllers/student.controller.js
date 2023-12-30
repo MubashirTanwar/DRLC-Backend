@@ -6,10 +6,10 @@ import jwt from "jsonwebtoken"
 import { generateTokens } from "../utils/generateToken.js";
 
 const registerUser = asyncHandler( async (req, res)=>{
-    const {fullname, domain_id, prn, password} = req.body
+    const {fullname, domain_id, prn, password, department, year, sem, number} = req.body
     
     if (
-        [fullname, domain_id, prn, password].some((field) => field?.trim() === "")
+        [fullname, domain_id, prn, password, department, year, sem, number].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required") 
     } 
@@ -31,7 +31,11 @@ const registerUser = asyncHandler( async (req, res)=>{
         domain_id,
         prn, 
         password,
-        idCard: idLocalPath
+        idCard: idLocalPath,
+        department, 
+        year, 
+        sem, 
+        number
     })
 
     const newID = "ID" + '-' + prn
