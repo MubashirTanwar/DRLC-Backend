@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { loginUser, logoutUser, newRefreshToken, registerUser } from "../controllers/student.controller.js";
+import { newRequest } from "../controllers/request.controllers.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -14,7 +15,29 @@ router.route("/login").post(loginUser)
 
 // ALL ROUTES
 router.route("/logout").post( verifyJWT, logoutUser )
-router.route("refresh-token").post(newRefreshToken)
+router.route("/refresh-token").post(newRefreshToken)
+router.route("/new-request").post(
+    verifyJWT, 
+    upload.fields([
+        {
+            name: "parents_Dec",
+            maxCount: 1
+        },
+        {
+            name: "students_Dec",
+            maxCount: 1
+        },
+        {
+            name: "faculty_Rec",
+            maxCount: 1
+        },
+        {
+            name: "pdc",
+            maxCount: 1
+        }
+    ]),
+    newRequest
+    )
 
 export { router }
 

@@ -1,9 +1,9 @@
 import { Request } from "../models/request.models.js";
 import { ApiError } from "../utils/apiError.js";
-import { ApiResponse } from "../utils/apiResponse";
+import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const newRequest = asyncHandler( async (res, req) => {
+const newRequest = asyncHandler( async (req, res) => {
     const student = req.student
     console.log(student);
     // Files = parents_Dec, students_Dec, faculty_Rec, pdc
@@ -20,7 +20,7 @@ const newRequest = asyncHandler( async (res, req) => {
     })
     console.log(existingReq);
 
-    if (existingReq.status !== ( "Fulfiled" || "Rejected" )){
+    if (existingReq !== null || (existingReq?.status == ( "Fulfiled" || "Rejected" ))){
         throw new ApiError(402, "You have already applied be patient")
     }
 
@@ -28,7 +28,7 @@ const newRequest = asyncHandler( async (res, req) => {
     const students_DecLocalPath = req.files?.students_Dec[0]?.path;
     const faculty_RecLocalPath = req.files?.faculty_Rec[0]?.path;
     const pdcLocalPath = req.files?.pdc[0]?.path;
-    if(!(parents_DecLocalPath || students_DecLocalPath || faculty_RecLocalPath || pdc)){
+    if(!(parents_DecLocalPath || students_DecLocalPath || faculty_RecLocalPath || pdcLocalPath)){
         throw new ApiError(401, "All files are required")
     }
 
