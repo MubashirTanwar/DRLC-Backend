@@ -26,7 +26,7 @@ const adminSchema = new mongoose.Schema( {
         trim: true
     },
     refreshToken: {
-        type: String
+        type: String,
     }
 }, { timestamps: true})
 
@@ -41,7 +41,7 @@ adminSchema.methods.passwordCheck = async function(password){
     return await bcrypt.compare(password, this.password)
 }
 
-adminSchema.methods.createAccessToken = async function() {
+adminSchema.methods.createAccessToken =  function() {
     return jwt.sign(
         {
             _id: this._id,
@@ -55,7 +55,7 @@ adminSchema.methods.createAccessToken = async function() {
     )
 }
 
-adminSchema.methods.createRefreshToken = async function() {
+adminSchema.methods.createRefreshToken =  function() {
     return jwt.sign(
         {
             email: this.email
