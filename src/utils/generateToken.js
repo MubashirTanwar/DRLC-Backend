@@ -1,13 +1,13 @@
 export const generateTokens = async(Schema, ID) => {
     try {
-        const logStudent = await Schema.findById(ID)
+        const user = await Schema.findById(ID)
 
-        const accessToken = logStudent.createAccessToken()
+        const accessToken = user.createAccessToken()
 
-        const refreshToken = logStudent.createRefreshToken();
+        const refreshToken = user.createRefreshToken();
 
-        logStudent.refreshToken = refreshToken
-        await logStudent.save({validateBeforeSave: false})
+        user.refreshToken = refreshToken
+        await user.save({validateBeforeSave: false})
 
         return { accessToken, refreshToken }
 
