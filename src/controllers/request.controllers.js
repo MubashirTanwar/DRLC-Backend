@@ -15,14 +15,14 @@ const newRequest = asyncHandler( async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-    const existingReq = await Request.findOne({ // C O U L D   B E   B E T T E R
+    const existingReq = await Request.find({ // C O U L D   B E   B E T T E R
         student_id: student._id    
-    })
-    console.log(existingReq);
+    }).sort("createdAt desc")
 
-    if (existingReq !== null || (existingReq?.status == ( "Fulfiled" || "Rejected" ))){
-        throw new ApiError(402, "You have already applied be patient")
+    if (existingReq !== null && (existingReq.status !== "Fulfiled" && existingReq.status !== "Rejected")) {
+        throw new ApiError(402, "You have already applied; be patient");
     }
+
 
     const parents_DecLocalPath = req.files?.parents_Dec[0]?.path;
     const students_DecLocalPath = req.files?.students_Dec[0]?.path;
