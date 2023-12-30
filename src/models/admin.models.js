@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import  jwt  from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const adminSchema = new mongoose.Schema( {
     email: {
@@ -18,6 +19,14 @@ const adminSchema = new mongoose.Schema( {
         required: true,
         trim: true,
         index: true
+    },
+    key: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    refreshToken: {
+        type: String
     }
 }, { timestamps: true})
 
