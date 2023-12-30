@@ -3,24 +3,7 @@ import { ApiError } from "../utils/apiError.js"
 import { Student } from "../models/students.models.js"; 
 import { ApiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken"
-
-const generateTokens = async(studentID) => {
-    try {
-        const logStudent = await Student.findById(studentID)
-
-        const accessToken = logStudent.createAccessToken()
-
-        const refreshToken = logStudent.createRefreshToken();
-
-        logStudent.refreshToken = refreshToken
-        await logStudent.save({validateBeforeSave: false})
-
-        return { accessToken, refreshToken }
-
-    } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating tokens")
-    }
-}
+import { generateTokens } from "../utils/generateToken.js";
 
 const registerUser = asyncHandler( async (req, res)=>{
     const {fullname, domain_id, prn, password} = req.body
@@ -69,8 +52,8 @@ const registerUser = asyncHandler( async (req, res)=>{
 
 const loginUser = asyncHandler( async (req, res) => {
     const  {domain_id, prn, password} = req.body;
-    if ([domain_id, prn, password].some((field) => 
-        field?.trim() === "")) {
+
+    if ([domain_id, prn, password].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required") 
     }
     
@@ -86,7 +69,7 @@ const loginUser = asyncHandler( async (req, res) => {
         throw new ApiError(401, "Invalid Login Credentials")
     }
     
-    const { accessToken, refreshToken } = await generateTokens(existingStudent._id)
+    const { accessToken, refreshToken } = await generateTokens(Student, existingStudent._id)
 
     const options = {
         httpOnly: true,
@@ -164,7 +147,7 @@ const newRefreshToken = asyncHandler( async (req, res) => {
             throw new ApiError(401, "Refresh Token Not Matching")
         }
     
-        const { accessToken, newRefreshToken } = await generateTokens(student._id)
+        const { accessToken, newRefreshToken } = await generateTokens(Student, student._id)
         const options = {
             httpOnly: true,
             secure: true

@@ -2,6 +2,7 @@ import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 
+
 const studentSchema  = new mongoose.Schema({
     domain_id: {
         type: String,
@@ -68,7 +69,7 @@ studentSchema.methods.createAccessToken = function(){
         }
     )
 }
-//createRefreshToken
+
 studentSchema.methods.createRefreshToken = function(){
     return jwt.sign(
         {
