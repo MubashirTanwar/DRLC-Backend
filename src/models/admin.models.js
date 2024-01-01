@@ -14,6 +14,10 @@ const adminSchema = new mongoose.Schema( {
         type: String,
         required: true,
     }, 
+    department: {
+        type: String,
+        required: true
+    },
     fullname: {
         type: String,
         required: true,
