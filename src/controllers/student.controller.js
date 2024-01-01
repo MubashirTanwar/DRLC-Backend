@@ -55,10 +55,11 @@ const registerUser = asyncHandler( async (req, res)=>{
 
 const loginUser = asyncHandler( async (req, res) => {
     const  {domain_id, prn, password} = req.body;
-
+    console.log(req.body);
     if ([domain_id, prn, password].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required") 
     }
+    console.log(domain_id, prn, password);
     
     const existingStudent = await Student.findOne({
         $or: [{ domain_id }, { prn }]
@@ -176,9 +177,58 @@ const newRefreshToken = asyncHandler( async (req, res) => {
     
 })
 
+const updateProfile = asyncHandler( async (req, res) => {
+    const student = req.student
+    
+    const updateStudent = await Student.findById(student._id)
+    if(!updateStudent){
+        throw new ApiError(404, "User not found")
+    }
+
+    const {fullname, domain_id, prn, department, year, sem, number} = req.body
+    
+    if (
+        [fullname, domain_id, prn, department, year, sem, number].some((field) => field?.trim() === "")
+    ) {
+        throw new ApiError(400, "All fields are required") 
+    } 
+
+    const updatedStudent = await Student.findByIdAndUpdate(
+        student._id, 
+        {
+            $set: {
+                fullname, 
+                domain_id, 
+                prn, 
+                department, 
+                year, 
+                sem, 
+                number
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -idCard -refreshToken")
+
+    if(!updatedStudent){
+        throw new ApiError(500, "Error While Updating Information")
+    }
+
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, updatedStudent, "Profile Changes Successful")
+    )
+
+
+
+})
 export{ 
     registerUser,
     loginUser,
     logoutUser,
-    newRefreshToken 
+    newRefreshToken ,
+    updateProfile
 }
