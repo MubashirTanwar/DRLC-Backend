@@ -225,10 +225,19 @@ const updateProfile = asyncHandler( async (req, res) => {
 
 
 })
+
+const viewProfile = asyncHandler( async (req, res) => {
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, req.student, "User Data")
+    )
+})
 export{ 
     registerUser,
     loginUser,
     logoutUser,
     newRefreshToken ,
-    updateProfile
+    updateProfile,
+    viewProfile
 }
