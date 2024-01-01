@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js"
 import { Admin } from "../models/admin.models.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { generateTokens } from "../utils/generateToken.js";
+import { Request } from "../models/request.models.js";
 
 const registerAdmin = asyncHandler( async(req, res) => {
     const { email, password, fullname, key } = req.body
@@ -105,9 +106,46 @@ const logoutAdmin = asyncHandler( async(req, res) => {
     .json(new ApiResponse(200, {}, "Admin logged Out"))
 })
 
+const getRequests = asyncHandler( async(req, res) => {
+    // get all or filtered pending requests from your department or others
+    // list of all requests
+})
+const getOneRequest = asyncHandler( async(req, res) => {
+    // get all the data, images, texts from a given particular request based on params (id or req_no)
+    // show all data in frontend and give option to accept / reject request with a message
+})
+
+const updateRequest = asyncHandler( async(req, res) => {
+    // update the status of a given request with a message
+})
+
+
+// =============  M A I N T A I N A N C E  ========================//
+
+const getApproved  = asyncHandler( async(req, res) => {
+    // get all the approved requests
+    // list of all approved
+})
+const newIssue = asyncHandler( async (req, res) => {
+    // option on the list to issue laptops
+    // get a list fo unissued laptops
+    // post req should take data like req_id, approved by, student details, and other laptop status
+})
+const allIssue = asyncHandler( async (req, res) => {
+    // returns all the currently issued laptops calculate days left and due date 
+    // an option to file return in the frontend
+})
+
+const newReturn = asyncHandler(async (req, res) => {
+    // once the laptop is returned change the return status, update the laptop condition
+})
+
+// if the laptop is alloed to someone it cant be alloted to others
+
 export{
     registerAdmin,
     loginAdmin,
-    logoutAdmin
+    logoutAdmin,
+    getRequests
 }
 
