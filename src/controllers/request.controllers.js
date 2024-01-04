@@ -10,7 +10,7 @@ const newRequest = asyncHandler( async (req, res) => {
     const { purpose, duration, ews, family_status } = req.body
 
     if (
-        [purpose, duration, ews, family_status].some((field) => field?.trim() === "")
+        [purpose, duration, ews, family_status].some((field) => field.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }

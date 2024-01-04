@@ -23,6 +23,10 @@ const issueSchema = new Schema( {
         type: String,
         required: true
     },
+    issued_by: {
+        type: String,
+        required: true
+    },
     recieved_by: {
         type: Schema.Types.ObjectId,
         ref: "Admin"

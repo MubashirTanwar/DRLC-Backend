@@ -109,6 +109,18 @@ const logoutAdmin = asyncHandler( async(req, res) => {
 const getRequests = asyncHandler( async(req, res) => {
     // get all or filtered pending requests from your department or others
     // list of all requests
+    const allrequests = await Request.aggregate([
+        {
+            $group: {
+                _id: "$duration"
+            }
+        }
+    ])
+    return res
+    .status(200)
+    .json(
+        new ApiResponse( 200, allrequests, "All requests fetched")
+    )
 })
 const getOneRequest = asyncHandler( async(req, res) => {
     // get all the data, images, texts from a given particular request based on params (id or req_no)
