@@ -6,10 +6,10 @@ import { generateTokens } from "../utils/generateToken.js";
 import { Request } from "../models/request.models.js";
 
 const registerAdmin = asyncHandler( async(req, res) => {
-    const { email, password, fullname, key } = req.body
+    const { email, password, department, fullname, key } = req.body
 
     if(
-        [ email, password, fullname ].some((field) =>  field?.trim() === "")
+        [ email, password, fullname, department ].some((field) =>  field?.trim() === "")
         //[fullname, domain_id, prn, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(401, "All Fields are mandatory")
@@ -28,6 +28,7 @@ const registerAdmin = asyncHandler( async(req, res) => {
         email: email,
         password: password,
         fullname: fullname,
+        department,
         key: key
     })    
     const createdAdmin = await Admin.findById(admin._id).select("-password")
@@ -122,6 +123,65 @@ const getRequests = asyncHandler( async(req, res) => {
         new ApiResponse( 200, allrequests, "All pending requests fetched")
     )
 })
+
+const getRequestsFromDepartment = asyncHandler( async (req, res) => { 
+    const admin = req.admin
+    console.log(admin);
+    const allRequest = await Request.aggregate([
+        {
+          $lookup: {
+            from: "students",
+            localField: "student_id",
+            foreignField: "_id",
+            as: "student"
+          }
+        },
+        {
+          $addFields: {
+            student: {
+              $first: "$student"
+            }
+          }
+        },
+        {
+            $match: {
+                "student.department": admin.department,
+            }
+        },
+        {
+          $project: {
+                  family_status: 1,
+            pdc: 1,
+            "student.fullname": 1,
+            "student.department": 1,
+            purpose: 1,
+            faculty_Rec: 1,
+            status: 1,
+            duration: 1,
+            ews: 1,
+            parents_Dec: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            students_Dec: 1    
+          }
+        },
+        {
+          $sort: {
+            createdAt: 1
+          }
+        }
+      ])
+    if(!allRequest){
+        throw new ApiError(400, "Error while finding requestd of your department")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(201, allRequest, "Request from your department fetched sucessfully")
+    )    
+
+})
 const getOneRequest = asyncHandler( async(req, res) => {
     const { request } = req.params // TODO: add new req_no in models 
     if (!request?.trim()) {
@@ -135,13 +195,13 @@ const getOneRequest = asyncHandler( async(req, res) => {
     return res
     .status(200)
     .json(
-        new ApiResponse(201, showRequest)
+        new ApiResponse(201, showRequest, "Sent Particular Request")
     )
     // show all data in frontend and give option to accept / reject request with a message
 })
 
 const updateRequest = asyncHandler( async(req, res) => {
-    // update the status of a given request with a message
+    // update the status from the button of a given request with a message
 })
 
 
@@ -173,6 +233,7 @@ export{
     logoutAdmin,
     getRequests,
     getOneRequest,
-    getApproved
+    getApproved,
+    getRequestsFromDepartment
 }
 
