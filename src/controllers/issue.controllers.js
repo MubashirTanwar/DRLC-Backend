@@ -1,5 +1,5 @@
-import { Issue } from "../models/issue.models";
-import { asyncHandler } from "../utils/asyncHandler";
+import { Issue } from "../models/issue.models.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const newIssue = asyncHandler( async( req, res) => {
     // get all approved request
