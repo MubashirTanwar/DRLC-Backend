@@ -2,6 +2,10 @@ import { Issue } from "../models/issue.models";
 import { asyncHandler } from "../utils/asyncHandler";
 
 const newIssue = asyncHandler( async( req, res) => {
+    // get all approved request
+    // option on the list to issue laptops
+    // get a list of unissued laptops
+    // post req should take data like req_id, approved by, student details, and other laptop status
     const admin = req.admin
     const { duration, req_id, laptop_id} = req.body
     if (
@@ -17,18 +21,23 @@ const newIssue = asyncHandler( async( req, res) => {
         issued_by: admin.fullname
     })
 
-    const cretaedIssue = await Issue.findById(createIssue._id)
-    if(!createIssue) {
+    const createdIssue = await Issue.findById(createIssue._id)
+    if(!createdIssue) {
         throw new ApiError("Error Creating New Issue")
     }
 
     return res
     .status(200)
     .json(
-        new ApiResponse(200, createIssue, "Issued")
+        new ApiResponse(200, createdIssue, "Issued")
     )
+})
 
+const allIssue = asyncHandler( async (req, res) => {
+    // returns all the currently issued laptops calculate days left and due date 
+    // an option to file return in the frontend
+})
 
-    
-
+const newReturn = asyncHandler(async (req, res) => {
+    // once the laptop is returned change the return status, update the laptop condition
 })

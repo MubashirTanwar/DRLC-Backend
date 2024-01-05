@@ -110,20 +110,33 @@ const getRequests = asyncHandler( async(req, res) => {
     // get all or filtered pending requests from your department or others
     // list of all requests
     const allrequests = await Request.aggregate([
-        {
-            $group: {
-                _id: "$duration"
+            {
+              $match: {
+                status: "Pending"
+              }
             }
-        }
     ])
     return res
     .status(200)
     .json(
-        new ApiResponse( 200, allrequests, "All requests fetched")
+        new ApiResponse( 200, allrequests, "All pending requests fetched")
     )
 })
 const getOneRequest = asyncHandler( async(req, res) => {
+    const { request } = req.params // TODO: add new req_no in models 
+    if (!request?.trim()) {
+        throw new ApiError(400, "request id is missing")
+    }
     // get all the data, images, texts from a given particular request based on params (id or req_no)
+    const showRequest = await Request.findById(request)
+    if(!showRequest){
+        throw new ApiError(404, "Request Not Found")
+    }
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(201, showRequest)
+    )
     // show all data in frontend and give option to accept / reject request with a message
 })
 
@@ -137,20 +150,20 @@ const updateRequest = asyncHandler( async(req, res) => {
 const getApproved  = asyncHandler( async(req, res) => {
     // get all the approved requests
     // list of all approved
-})
-const newIssue = asyncHandler( async (req, res) => {
-    // option on the list to issue laptops
-    // get a list fo unissued laptops
-    // post req should take data like req_id, approved by, student details, and other laptop status
-})
-const allIssue = asyncHandler( async (req, res) => {
-    // returns all the currently issued laptops calculate days left and due date 
-    // an option to file return in the frontend
+    const allApproved = await Request.aggregate([
+        {
+          $match: {
+            status: "Approved"
+          }
+        }
+])
+return res
+.status(200)
+.json(
+    new ApiResponse( 200, allApproved, "All approved requests fetched")
+)
 })
 
-const newReturn = asyncHandler(async (req, res) => {
-    // once the laptop is returned change the return status, update the laptop condition
-})
 
 // if the laptop is alloed to someone it cant be alloted to others
 
