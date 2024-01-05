@@ -41,3 +41,7 @@ const allIssue = asyncHandler( async (req, res) => {
 const newReturn = asyncHandler(async (req, res) => {
     // once the laptop is returned change the return status, update the laptop condition
 })
+
+export{
+    newIssue
+}

@@ -171,6 +171,8 @@ export{
     registerAdmin,
     loginAdmin,
     logoutAdmin,
-    getRequests
+    getRequests,
+    getOneRequest,
+    getApproved
 }
 
