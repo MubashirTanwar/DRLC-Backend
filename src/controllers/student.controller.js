@@ -4,6 +4,7 @@ import { Student } from "../models/students.models.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken"
 import { generateTokens } from "../utils/generateToken.js";
+import { Request } from "../models/request.models.js";
 
 const registerUser = asyncHandler( async (req, res)=>{
     const {fullname, domain_id, prn, password, department, year, sem, number} = req.body
@@ -233,11 +234,38 @@ const viewProfile = asyncHandler( async (req, res) => {
         new ApiResponse(200, req.student, "User Data")
     )
 })
+
+const getMyRequestHistory = asyncHandler( async (req, res) => {
+    const student = req.student
+    const getMyRequests = await Request.aggregate(
+        [
+            {
+              $match: {
+                student_id: student._id
+              },
+            },
+            {
+              $sort: {
+                updatedAt: 1
+              }
+            }
+        ]
+    )
+    if(!getMyRequests){
+        throw new ApiError(500, "Error While Fetching Your Request History")
+    }
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(201, getMyRequests, "Request History Fetched Successfully")
+    )
+})
 export{ 
     registerUser,
     loginUser,
     logoutUser,
     newRefreshToken ,
     updateProfile,
-    viewProfile
+    viewProfile,
+    getMyRequestHistory
 }
