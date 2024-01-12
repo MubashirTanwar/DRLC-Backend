@@ -260,6 +260,61 @@ const getMyRequestHistory = asyncHandler( async (req, res) => {
         new ApiResponse(201, getMyRequests, "Request History Fetched Successfully")
     )
 })
+
+const getMyIssueHistory = asyncHandler( async (req, res) => {
+    const student = req.student
+    const getMyIssue = await Request(
+        [
+            {
+              $match: {
+                student_id: student._id,
+                status: "Fulfiled",
+              },
+            },
+            {
+              $lookup: {
+                from: "issues",
+                localField: "_id",
+                foreignField: "req_id",
+                as: "issue",
+              },
+            },
+            {
+              $addFields: {
+                issue: {
+                  $first: "$issue",
+                },
+              },
+            },
+            { 
+                $project: {
+                _id: 1,
+                "issue.duration": 1,
+                "issue.createdAt": 1,
+                "status": 1,
+                "issue.laptop_id": 1,
+                "issue.returned": 1
+                }
+            },
+            { 
+                $sort: {
+                "issue.createdAt": 1
+                }
+            }
+        ]   
+    )
+    console.log(getMyIssue);
+    if(!getMyIssue){
+        throw new ApiError(500, "Error while fetching issue history")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(201, getMyIssue, "Issue history fetched")
+    )
+    
+})
 export{ 
     registerUser,
     loginUser,
@@ -267,5 +322,6 @@ export{
     newRefreshToken ,
     updateProfile,
     viewProfile,
-    getMyRequestHistory
+    getMyRequestHistory,
+    getMyIssueHistory
 }
