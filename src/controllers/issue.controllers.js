@@ -1,5 +1,7 @@
 import { Issue } from "../models/issue.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { Request } from "../models/request.models.js";
 
 const newIssue = asyncHandler( async( req, res) => {
     // get all approved request
@@ -14,6 +16,7 @@ const newIssue = asyncHandler( async( req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
+    
     const createIssue = await Issue.create({
         duration, 
         req_id, 
@@ -21,6 +24,17 @@ const newIssue = asyncHandler( async( req, res) => {
         issued_by: admin.fullname
     })
 
+    await Request.findOneAndReplace(
+        req_id,
+        {
+            $set: {
+                status: "Fulfiled"
+            }
+        },
+        {
+            new: true
+        }
+    )
     const createdIssue = await Issue.findById(createIssue._id)
     if(!createdIssue) {
         throw new ApiError("Error Creating New Issue")
@@ -33,15 +47,24 @@ const newIssue = asyncHandler( async( req, res) => {
     )
 })
 
-const allIssue = asyncHandler( async (req, res) => {
+const allIssuedLaptops = asyncHandler( async (req, res) => {
     // returns all the currently issued laptops calculate days left and due date 
     // an option to file return in the frontend
 })
+
+const allFreeLaptops = asyncHandler( async (req, res) => {
+    // returns all the currently free laptops
+    // this feature will be used as a dropdown in new issue page
+})
+
 
 const newReturn = asyncHandler(async (req, res) => {
     // once the laptop is returned change the return status, update the laptop condition
 })
 
 export{
-    newIssue
+    newIssue,
+    allIssuedLaptops,
+    allFreeLaptops,
+    newReturn
 }

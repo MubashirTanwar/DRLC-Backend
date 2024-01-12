@@ -107,7 +107,7 @@ const logoutAdmin = asyncHandler( async(req, res) => {
     .json(new ApiResponse(200, {}, "Admin logged Out"))
 })
 
-const getRequests = asyncHandler( async(req, res) => {
+const getRequests = asyncHandler( async(_, res) => {
     // get all or filtered pending requests from your department or others
     // list of all requests
     const allrequests = await Request.aggregate([
@@ -126,8 +126,12 @@ const getRequests = asyncHandler( async(req, res) => {
 
 const getRequestsFromDepartment = asyncHandler( async (req, res) => { 
     const admin = req.admin
-    console.log(admin);
     const allRequest = await Request.aggregate([
+        {
+            $match: {
+              status: "Pending"
+            }
+        },
         {
           $lookup: {
             from: "students",
@@ -207,7 +211,7 @@ const updateRequest = asyncHandler( async(req, res) => {
 
 // =============  M A I N T A I N A N C E  ========================//
 
-const getApproved  = asyncHandler( async(req, res) => {
+const getApproved  = asyncHandler( async(_, res) => {
     // get all the approved requests
     // list of all approved
     const allApproved = await Request.aggregate([
@@ -215,6 +219,11 @@ const getApproved  = asyncHandler( async(req, res) => {
           $match: {
             status: "Approved"
           }
+        },
+        {
+            $sort: {
+              createdAt: 1
+            }
         }
 ])
 return res
