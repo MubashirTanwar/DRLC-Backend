@@ -29,6 +29,10 @@ const adminSchema = new mongoose.Schema( {
         required: true,
         trim: true
     },
+    type: {
+        type: String,
+        enum: ["Teacher", "Maintainance"]
+    },
     refreshToken: {
         type: String,
     }
