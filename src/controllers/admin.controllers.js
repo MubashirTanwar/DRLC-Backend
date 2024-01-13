@@ -107,6 +107,13 @@ const logoutAdmin = asyncHandler( async(req, res) => {
     .json(new ApiResponse(200, {}, "Admin logged Out"))
 })
 
+const viewProfile = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, req.admin, "User Data")
+        )
+})
 const getRequests = asyncHandler( async(_, res) => {
     // get all or filtered pending requests from your department or others
     // list of all requests
@@ -192,7 +199,7 @@ const getOneRequest = asyncHandler( async(req, res) => {
         throw new ApiError(400, "request id is missing")
     }
     // get all the data, images, texts from a given particular request based on params (id or req_no)
-    const showRequest = await Request.findById(request)
+    const showRequest = await Request.findOne({ student_id: request }).populate('student_id')
     if(!showRequest){
         throw new ApiError(404, "Request Not Found")
     }
@@ -243,6 +250,8 @@ export{
     getRequests,
     getOneRequest,
     getApproved,
-    getRequestsFromDepartment
+    getRequestsFromDepartment,
+    updateRequest,
+    viewProfile
 }
 
