@@ -263,7 +263,7 @@ const getMyRequestHistory = asyncHandler( async (req, res) => {
 
 const getMyIssueHistory = asyncHandler( async (req, res) => {
     const student = req.student
-    const getMyIssue = await Request(
+    const getMyIssue = await Request.aggregate(
         [
             {
               $match: {
