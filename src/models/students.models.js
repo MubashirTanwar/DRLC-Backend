@@ -54,7 +54,15 @@ const studentSchema  = new mongoose.Schema({
     ],
     refreshToken: {
         type: String
-    }
+    },
+    userType: {
+        type: String,
+        default: "student",
+    },
+    appliedCurrent: {
+        type: Boolean,
+        default: false,
+    },
 }, 
 {
     timestamps: true
