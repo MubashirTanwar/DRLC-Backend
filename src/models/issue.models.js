@@ -26,9 +26,8 @@ const issueSchema = new Schema( {
         required: true
     },
     recieved_by: {
-        type: Schema.Types.ObjectId,
-        ref: "Admin"
-    } 
+        type: String,
+    }  
 }, { timestamps: true})
 
 

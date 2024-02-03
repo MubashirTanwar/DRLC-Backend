@@ -3,7 +3,10 @@ import { ApiError } from "../utils/apiError.js";
 import { Student } from "../models/students.models.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
-import { generateTokens } from "../utils/generateToken.js";
+import {
+    generateRefreshTokens,
+    generateTokens,
+} from "../utils/generateToken.js";
 import s3Client from "../utils/s3.js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -208,7 +211,11 @@ const newRefreshToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh Token Not Matching");
         }
 
-        const { accessToken, newRefreshToken } = await generateTokens(
+        // const { accessToken, newRefreshToken } = await generateTokens(
+        //     Student,
+        //     student._id
+        // );
+        const { newRefreshToken } = await generateRefreshTokens(
             Student,
             student._id
         );
@@ -219,14 +226,14 @@ const newRefreshToken = asyncHandler(async (req, res) => {
 
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", newRefreshToken, options)
             .json(
                 new ApiResponse(
                     200,
                     {
-                        accessToken,
+                        accessToken: req?.cookies?.accessToken,
                         refreshToken: newRefreshToken,
+                        userType: "student",
                     },
                     "Access Token Refreshed in successfully"
                 )

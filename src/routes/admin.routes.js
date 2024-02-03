@@ -9,6 +9,9 @@ import {
     updateRequest,
     viewProfile,
     getOneApprovedRequest,
+    getOneIssuedRequest,
+    changeLaptopStatus,
+    newRefreshToken,
 } from "../controllers/admin.controllers.js";
 import {
     getApproved,
@@ -24,7 +27,8 @@ const adminRouter = Router();
 
 adminRouter.route("/register").post(registerAdmin);
 adminRouter.route("/login").post(loginAdmin);
-
+// new route for refresh token revalidation
+adminRouter.route("/refresh-token").post(newRefreshToken);
 // R O U T E S
 adminRouter.route("/logout").post(adminJWT, logoutAdmin);
 adminRouter.route("/allRequest").get(adminJWT, getRequests);
@@ -41,7 +45,10 @@ adminRouter
 adminRouter.route("/new-issue").post(adminJWT, newIssue);
 adminRouter.route("/free-laptop").get(adminJWT, allFreeLaptops);
 adminRouter.route("/issued-laptop").get(adminJWT, allIssuedLaptops);
-adminRouter.route("/new-return").post(adminJWT, newReturn);
+adminRouter.route("/issued-laptop/:id").get(adminJWT, getOneIssuedRequest);
+adminRouter.route("/change-laptop").post(adminJWT, changeLaptopStatus);
+
+adminRouter.route("/new-return/:issue").post(adminJWT, newReturn);
 adminRouter.route("/all-return").get(adminJWT, allReturn);
 
 export { adminRouter };

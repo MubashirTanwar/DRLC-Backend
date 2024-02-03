@@ -2,12 +2,16 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { Admin } from "../models/admin.models.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import { generateTokens } from "../utils/generateToken.js";
+import {
+    generateRefreshTokens,
+    generateTokens,
+} from "../utils/generateToken.js";
 import { Request } from "../models/request.models.js";
 import { Issue } from "../models/issue.models.js";
 import s3Client from "../utils/s3.js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Laptop } from "../models/laptop.models.js";
 
 const registerAdmin = asyncHandler(async (req, res) => {
     const { email, password, department, fullname, key, type } = req.body; // added type { admin, maintenance }
@@ -107,18 +111,94 @@ const loginAdmin = asyncHandler(async (req, res) => {
         .status(200)
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
-        .cookie("userType", type, options)
+        .cookie("userType", existingAdmin.userType, options)
         .json(
             new ApiResponse(
                 200,
                 {
                     accessToken: accessToken,
                     refreshToken: refreshToken,
-                    userType: type,
+                    userType: existingAdmin.userType,
                 },
                 "Admin logged in successfully"
             )
         );
+});
+
+// make a new function for admin refresh token
+const newRefreshToken = asyncHandler(async (req, res) => {
+    const existingRefreshToken =
+        req.cookies?.refreshToken || req.body.refreshToken;
+    if (!existingRefreshToken) {
+        throw new ApiError(401, "No Refresh Token");
+    }
+
+    try {
+        const token = jwt.verify(
+            existingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        );
+
+        console.log(token);
+
+        const admin = await Admin.findOne({ email: token.email });
+        console.log(admin);
+
+        if (!admin) {
+            throw new ApiError(404, "Admin not found");
+        }
+        if (existingRefreshToken !== admin?.refreshToken) {
+            throw new ApiError(401, "Refresh Token Not Matching");
+        }
+
+        // const accessToken = admin.createAccessToken();
+
+        // const options = {
+        //     httpOnly: true,
+        //     secure: true,
+        // };
+
+        // return res
+        //     .status(200)
+        //     .cookie("accessToken", accessToken, options)
+        //     .json(
+        //         new ApiResponse(
+        //             200,
+        //             {
+        //                 accessToken,
+        //                 refreshToken: existingRefreshToken,
+        //                 userType: admin.userType,
+        //             },
+        //             "Access Token Refreshed successfully"
+        //         )
+        //     );
+        const { newRefreshToken } = await generateRefreshTokens(
+            Admin,
+            admin._id
+        );
+        const options = {
+            httpOnly: true,
+            secure: true,
+        };
+
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        accessToken,
+                        refreshToken: newRefreshToken,
+                        userType: admin.userType,
+                    },
+                    "Access Token Refreshed in successfully"
+                )
+            );
+    } catch (error) {
+        throw new ApiError(401, error.message);
+    }
 });
 
 const logoutAdmin = asyncHandler(async (req, res) => {
@@ -540,6 +620,102 @@ const getOneApprovedRequest = asyncHandler(async (req, res) => {
     }
 });
 
+const getOneIssuedRequest = asyncHandler(async (req, res) => {
+    const { id } = req.params; // TODO: add new req_no in models
+    try {
+        if (!id?.trim()) {
+            return res
+                .status(400)
+                .json(
+                    new ApiResponse(
+                        400,
+                        { message: "No Request ID is given as param" },
+                        "No Request ID is given as param"
+                    )
+                );
+        }
+        const showRequest = await Issue.findById(id).populate({
+            path: "req_id",
+            populate: {
+                path: "student_id",
+                model: "Student", // Adjust this with the actual model name for students
+            },
+        });
+        // const showRequest = await Issue.findById(id).populate([
+        //     {
+        //         path: "req_id",
+        //         populate: { path: "student_id", model: "Student" },
+        //     },
+        //     { path: "laptop_id" }, // Assuming laptop_id is a string field
+        // ]);
+
+        if (!showRequest) {
+            return res
+                .status(404)
+                .json(
+                    new ApiResponse(
+                        404,
+                        { message: "No Request found for the given ID" },
+                        "No Request found for the given ID"
+                    )
+                );
+        }
+
+        return res
+            .status(202)
+            .json(new ApiResponse(202, showRequest, "Sent Particular Request"));
+    } catch (e) {
+        return res
+            .status(500)
+            .json(
+                new ApiResponse(
+                    500,
+                    { message: e.message || "Internal Server Error" },
+                    "Couldn't Fetch the Student Request"
+                )
+            );
+    }
+});
+
+const changeLaptopStatus = asyncHandler(async (req, res) => {
+    const { status, id } = req.body;
+    console.log(status, id);
+    try {
+        const updatedLaptop = await Laptop.findOneAndUpdate(
+            { laptop_id: id },
+            { condition: status }
+        );
+
+        if (!updatedLaptop) {
+            // If no laptop with the specified ID is found
+            return res
+                .status(404)
+                .json(
+                    new ApiResponse(
+                        404,
+                        { message: "No Laptop found for the given ID" },
+                        "No Laptop found for the given ID"
+                    )
+                );
+        }
+
+        // The updatedLaptop variable now contains the updated document
+        return res
+            .status(202)
+            .json(new ApiResponse(202, {}, "Status Changed Successfully"));
+    } catch (e) {
+        return res
+            .status(500)
+            .json(
+                new ApiResponse(
+                    500,
+                    { message: e.message || "Internal Server Error" },
+                    "Couldn't Update the Status "
+                )
+            );
+    }
+});
+
 // if the laptop is alloed to someone it cant be alloted to others
 
 export {
@@ -552,4 +728,7 @@ export {
     updateRequest,
     viewProfile,
     getOneApprovedRequest,
+    getOneIssuedRequest,
+    changeLaptopStatus,
+    newRefreshToken,
 };

@@ -56,7 +56,7 @@ const newIssue = asyncHandler(async (req, res) => {
     if (existingIssue) {
         return res.status(400).json(new ApiResponse(400, {}, "Already Issued"));
     }
-    const createIssue = await Issue.create({
+    const createdIssue = await Issue.create({
         duration,
         req_id,
         laptop_id,
@@ -95,24 +95,61 @@ const allFreeLaptops = asyncHandler(async (req, res) => {
 });
 
 const allIssuedLaptops = asyncHandler(async (req, res) => {
-    // returns all the currently issued laptops calculate days left and due date
-    // an option to file return in the frontend
-    const issuedLaptops = await Laptop.aggregate([
+    const issuedLaptops = await Issue.aggregate([
         {
             $match: {
-                status: "Issued",
+                returned: false,
             },
         },
         {
-            $sort: {
+            $lookup: {
+                from: "requests", // Assuming the name of the Request collection
+                localField: "req_id",
+                foreignField: "_id",
+                as: "reqInfo",
+            },
+        },
+        {
+            $unwind: {
+                path: "$reqInfo",
+                preserveNullAndEmptyArrays: true,
+            },
+        },
+        {
+            $lookup: {
+                from: "students", // Assuming the name of the Students collection
+                localField: "reqInfo.student_id",
+                foreignField: "_id",
+                as: "studentInfo",
+            },
+        },
+        {
+            $unwind: {
+                path: "$studentInfo",
+                preserveNullAndEmptyArrays: true,
+            },
+        },
+        {
+            $project: {
+                _id: 1,
+                duration: 1,
+                req_id: 1,
                 laptop_id: 1,
+                returned: 1,
+                issued_by: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                reqInfo: "$reqInfo",
+                studentInfo: "$studentInfo",
             },
         },
     ]);
+    console.log(issuedLaptops);
+
     if (!issuedLaptops) {
         throw new ApiError(500, "Error while fetching Issued Laptops");
     }
-
+    console.log("working");
     return res
         .status(200)
         .json(
@@ -125,52 +162,55 @@ const newReturn = asyncHandler(async (req, res) => {
     const admin = req.admin;
     // returned is boolean in DB
     // use params to update the issue
-    const condition = req.body;
+    const { condition, laptop_id } = req.body;
     const { issue } = req.params;
+    console.log(issue, laptop_id);
     if (!issue?.trim()) {
         throw new ApiError(400, "issue id is missing");
     }
-    const findIssue = await Issue.findById(issue);
-    if (!findIssue) {
-        throw new ApiError(404, "Couldn't Find Issue ID");
-    }
+    try {
+        const findIssue = await Issue.findById(issue);
+        if (!findIssue) {
+            throw new ApiError(404, "Couldn't Find Issue ID");
+        }
 
-    const isReturned = await Issue.findByIdAndUpdate(
-        issue,
-        {
+        const isReturned = await Issue.findByIdAndUpdate(issue, {
             $set: {
-                returned: True,
+                returned: true,
                 returned_on: Date,
                 recieved_by: admin.fullname,
             },
-        },
-        {
-            new: true,
+        });
+        if (!isReturned) {
+            throw new ApiError(500, "Error while filing return ");
         }
-    );
-    if (!isReturned) {
-        throw new ApiError(500, "Error while filing return ");
-    }
 
-    const updateLaptop = await Laptop.findOneAndUpdate(
-        {
-            laptop_id: issue.laptop_id,
-        },
-        {
-            status: "Free",
-            conditon: condition,
-        }
-    );
-    if (!updateLaptop) {
-        throw new ApiError(
-            500,
-            "An error occured while updating laptop condition"
+        const updateLaptop = await Laptop.findOneAndUpdate(
+            {
+                laptop_id: laptop_id,
+            },
+            {
+                status: "Free",
+                conditon: condition,
+            }
         );
-    }
+        if (!updateLaptop) {
+            throw new ApiError(
+                500,
+                "An error occured while updating laptop condition"
+            );
+        }
 
-    return res
-        .status(200)
-        .json(new ApiResponse(201, isReturned, "Returne Filed Successfully"));
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(201, isReturned, "Returne Filed Successfully")
+            );
+    } catch (e) {
+        return res
+            .status(500)
+            .json(new ApiResponse(500, { message: e.message }, e));
+    }
 });
 
 const allReturn = asyncHandler(async (req, res) => {
